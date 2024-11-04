@@ -1,17 +1,53 @@
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.table.JTableHeader;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.LineBorder;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 public class MainMenu extends JFrame {
     private double calculateEstimatedPrice(String initialPoint, String finalDestination) {
@@ -31,14 +67,20 @@ public class MainMenu extends JFrame {
     private DefaultListModel<String> notificationsModel;
     private JList<String> notificationList;
     private JComboBox<String> taxiComboBox;
+    private JTable taxiTable;
+    private DefaultTableModel taxiTableModel;
     private double currentFare;
 
-    // Color palette based on provided image
-    private final Color COLOR_1 = new Color(7, 47, 71);
-    private final Color COLOR_2 = new Color(7, 79, 148);
-    private final Color COLOR_3 = new Color(8, 113, 201);
-    private final Color COLOR_4 = new Color(136, 187, 220);
-    private final Color COLOR_5 = new Color(114, 148, 155);
+    // New Colors based on Midnight blue, Royal blue, Burgundy red, and White
+    private final Color BG_COLOR_DARK = new Color(25, 25, 112);  // Midnight blue
+    private final Color BG_COLOR_LIGHT = new Color(70, 130, 180);  // Light blue
+    private final Color PANEL_COLOR = new Color(12, 53, 120);  // Royal blue
+    private final Color BUTTON_COLOR = Color.BLACK;  // Button color always black
+    private final Color BUTTON_TEXT_COLOR = Color.BLACK;  // Button description always black
+    private final Color TEXT_COLOR = Color.WHITE;  // White text
+    private final Color ACCENT_COLOR = new Color(44, 130, 201);  // Accent blue
+
+    private boolean isLightTheme = true;
 
     public MainMenu(double initialBalance) {
         this.walletBalance = initialBalance;
@@ -85,32 +127,32 @@ public class MainMenu extends JFrame {
         aboutMenuItem.addActionListener(e -> JOptionPane.showMessageDialog(this, "Taxi Service Dashboard v2.0", "About", JOptionPane.INFORMATION_MESSAGE));
 
         JPanel mainContainer = new JPanel(new BorderLayout());
-        mainContainer.setBackground(COLOR_1);
+        mainContainer.setBackground(isLightTheme ? BG_COLOR_LIGHT : BG_COLOR_DARK);
 
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setPreferredSize(new Dimension(getWidth(), 80));
-        headerPanel.setBackground(COLOR_2);
+        headerPanel.setBackground(PANEL_COLOR);
 
         JLabel logoLabel = new JLabel("Taxi Service Dashboard", JLabel.LEFT);
         logoLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        logoLabel.setForeground(Color.WHITE);
+        logoLabel.setForeground(TEXT_COLOR);
         headerPanel.add(logoLabel, BorderLayout.WEST);
 
         clockLabel = new JLabel();
         clockLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        clockLabel.setForeground(Color.WHITE);
+        clockLabel.setForeground(TEXT_COLOR);
         headerPanel.add(clockLabel, BorderLayout.EAST);
         startClock();
 
         JTextField searchField = new JTextField("Search...");
         searchField.setPreferredSize(new Dimension(300, 30));
-        searchField.setBackground(COLOR_5);
-        searchField.setForeground(Color.WHITE);
-        searchField.setBorder(BorderFactory.createLineBorder(COLOR_3));
+        searchField.setBackground(PANEL_COLOR);
+        searchField.setForeground(TEXT_COLOR);
+        searchField.setBorder(BorderFactory.createLineBorder(ACCENT_COLOR));
         JButton searchButton = new JButton("Search");
         searchButton.setPreferredSize(new Dimension(100, 30));
-        searchButton.setBackground(COLOR_3);
-        searchButton.setForeground(Color.WHITE);
+        searchButton.setBackground(BUTTON_COLOR);
+        searchButton.setForeground(BUTTON_TEXT_COLOR);
         searchButton.setFocusPainted(false);
 
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -146,16 +188,14 @@ public class MainMenu extends JFrame {
 
         JPanel sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
-        sidebarPanel.setBackground(COLOR_1);
+        sidebarPanel.setBackground(isLightTheme ? BG_COLOR_LIGHT : BG_COLOR_DARK);
         sidebarPanel.setPreferredSize(new Dimension(250, getHeight()));
 
-        Color buttonColor = COLOR_3;
-
-        JButton bookTaxiButton = createModernSidebarButton("Book a Taxi", buttonColor);
-        JButton nearbyTaxiButton = createModernSidebarButton("See Nearby Taxis", buttonColor);
-        JButton taxiRoutesButton = createModernSidebarButton("View Taxi Routes", buttonColor);
-        JButton taxiScheduleButton = createModernSidebarButton("Taxi Schedule", buttonColor);
-        JButton themeSwitcher = createModernSidebarButton("Switch Theme", buttonColor);
+        JButton bookTaxiButton = createModernSidebarButton("Book a Taxi", BUTTON_COLOR);
+        JButton nearbyTaxiButton = createModernSidebarButton("See Nearby Taxis", BUTTON_COLOR);
+        JButton taxiRoutesButton = createModernSidebarButton("View Taxi Routes", BUTTON_COLOR);
+        JButton taxiScheduleButton = createModernSidebarButton("Taxi Schedule", BUTTON_COLOR);
+        JButton themeSwitcher = createModernSidebarButton("Switch Theme", BUTTON_COLOR);
 
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         sidebarPanel.add(bookTaxiButton);
@@ -179,7 +219,7 @@ public class MainMenu extends JFrame {
 
         walletLabel = new JLabel(String.format("Wallet Balance: R%.2f", walletBalance), SwingConstants.CENTER);
         walletLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        walletLabel.setForeground(Color.WHITE);
+        walletLabel.setForeground(TEXT_COLOR);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -189,7 +229,7 @@ public class MainMenu extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.setColor(COLOR_5);
+                g.setColor(PANEL_COLOR);
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
@@ -198,26 +238,26 @@ public class MainMenu extends JFrame {
 
         JLabel initialPointLabel = new JLabel("Initial Point:");
         initialPointLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        initialPointLabel.setForeground(Color.WHITE);
+        initialPointLabel.setForeground(TEXT_COLOR);
         JTextField initialPointField = new JTextField();
-        initialPointField.setBackground(COLOR_5);
-        initialPointField.setForeground(Color.WHITE);
-        initialPointField.setBorder(BorderFactory.createLineBorder(COLOR_3));
+        initialPointField.setBackground(PANEL_COLOR);
+        initialPointField.setForeground(TEXT_COLOR);
+        initialPointField.setBorder(BorderFactory.createLineBorder(ACCENT_COLOR));
 
         JLabel finalDestinationLabel = new JLabel("Final Destination:");
         finalDestinationLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        finalDestinationLabel.setForeground(Color.WHITE);
+        finalDestinationLabel.setForeground(TEXT_COLOR);
         JTextField finalDestinationField = new JTextField();
-        finalDestinationField.setBackground(COLOR_5);
-        finalDestinationField.setForeground(Color.WHITE);
-        finalDestinationField.setBorder(BorderFactory.createLineBorder(COLOR_3));
+        finalDestinationField.setBackground(PANEL_COLOR);
+        finalDestinationField.setForeground(TEXT_COLOR);
+        finalDestinationField.setBorder(BorderFactory.createLineBorder(ACCENT_COLOR));
 
         JLabel taxiSelectionLabel = new JLabel("Select Taxi:");
         taxiSelectionLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        taxiSelectionLabel.setForeground(Color.WHITE);
+        taxiSelectionLabel.setForeground(TEXT_COLOR);
         taxiComboBox = new JComboBox<>(new String[]{"Standard Taxi", "Luxury Taxi", "Minibus"});
-        taxiComboBox.setBackground(COLOR_5);
-        taxiComboBox.setForeground(Color.WHITE);
+        taxiComboBox.setBackground(PANEL_COLOR);
+        taxiComboBox.setForeground(TEXT_COLOR);
 
         inputPanel.add(initialPointLabel);
         inputPanel.add(initialPointField);
@@ -236,9 +276,9 @@ public class MainMenu extends JFrame {
         gbc.gridy = 2;
         JPanel walletButtonPanel = new JPanel(new GridLayout(1, 3, 10, 10));
         walletButtonPanel.setOpaque(false);
-        JButton addMoneyButton = createModernSidebarButton("Add Money", buttonColor);
-        JButton withdrawMoneyButton = createModernSidebarButton("Pay", buttonColor);
-        JButton showMapButton = createModernSidebarButton("Show Map", buttonColor);
+        JButton addMoneyButton = createModernSidebarButton("Add Money", BUTTON_COLOR);
+        JButton withdrawMoneyButton = createModernSidebarButton("Pay", BUTTON_COLOR);
+        JButton showMapButton = createModernSidebarButton("Show Map", BUTTON_COLOR);
 
         walletButtonPanel.add(addMoneyButton);
         walletButtonPanel.add(withdrawMoneyButton);
@@ -247,36 +287,52 @@ public class MainMenu extends JFrame {
         walletPanel.add(walletButtonPanel, gbc);
 
         gbc.gridy = 3;
-        JButton calculateButton = createModernSidebarButton("Calculate Fare & Availability", buttonColor);
+        JButton calculateButton = createModernSidebarButton("Calculate Fare & Availability", BUTTON_COLOR);
         walletPanel.add(calculateButton, gbc);
 
         gbc.gridy = 4;
         JLabel estimatedPriceLabel = new JLabel("Estimated Price: N/A");
         estimatedPriceLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        estimatedPriceLabel.setForeground(Color.WHITE);
+        estimatedPriceLabel.setForeground(TEXT_COLOR);
         walletPanel.add(estimatedPriceLabel, gbc);
 
         gbc.gridy = 5;
         JLabel taxiAvailabilityLabel = new JLabel("Taxi Availability: N/A");
         taxiAvailabilityLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        taxiAvailabilityLabel.setForeground(Color.WHITE);
+        taxiAvailabilityLabel.setForeground(TEXT_COLOR);
         walletPanel.add(taxiAvailabilityLabel, gbc);
+
+        gbc.gridy = 6;
+        taxiTableModel = new DefaultTableModel(new String[]{"Taxi Number", "Available Start Time", "Available End Time"}, 0);
+        taxiTable = new JTable(taxiTableModel);
+        taxiTable.setFillsViewportHeight(true);
+        taxiTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        taxiTable.setRowHeight(30);
+
+        JTableHeader header = taxiTable.getTableHeader();
+        header.setFont(new Font("Arial", Font.BOLD, 16));
+        header.setBackground(ACCENT_COLOR);
+        header.setForeground(TEXT_COLOR);
+
+        JScrollPane tableScrollPane = new JScrollPane(taxiTable);
+        tableScrollPane.setPreferredSize(new Dimension(600, 200));
+        walletPanel.add(tableScrollPane, gbc);
 
         contentPanel.add(walletPanel, "walletPanel");
         mainContainer.add(contentPanel, BorderLayout.CENTER);
 
         JPanel notificationPanel = new JPanel(new BorderLayout());
         notificationPanel.setPreferredSize(new Dimension(300, 300));
-        notificationPanel.setBackground(COLOR_4);
+        notificationPanel.setBackground(PANEL_COLOR);
 
         notificationLabel = new JLabel("Notifications", JLabel.LEFT);
         notificationLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        notificationLabel.setForeground(COLOR_1);
+        notificationLabel.setForeground(TEXT_COLOR);
         notificationPanel.add(notificationLabel, BorderLayout.NORTH);
 
         notificationList = new JList<>(notificationsModel);
-        notificationList.setBackground(COLOR_5);
-        notificationList.setForeground(Color.WHITE);
+        notificationList.setBackground(PANEL_COLOR);
+        notificationList.setForeground(TEXT_COLOR);
         notificationList.setFont(new Font("Arial", Font.PLAIN, 16));
 
         JScrollPane notificationScrollPane = new JScrollPane(notificationList);
@@ -284,8 +340,8 @@ public class MainMenu extends JFrame {
 
         JButton hideNotificationsButton = new JButton("Hide Notifications");
         hideNotificationsButton.setFont(new Font("Arial", Font.BOLD, 16));
-        hideNotificationsButton.setBackground(COLOR_3);
-        hideNotificationsButton.setForeground(Color.WHITE);
+        hideNotificationsButton.setBackground(BUTTON_COLOR);
+        hideNotificationsButton.setForeground(BUTTON_TEXT_COLOR);
         hideNotificationsButton.setFocusPainted(false);
         hideNotificationsButton.addActionListener(e -> {
             notificationPanel.setVisible(false);
@@ -294,8 +350,8 @@ public class MainMenu extends JFrame {
 
         showNotificationsButton = new JButton("Show Notifications");
         showNotificationsButton.setFont(new Font("Arial", Font.BOLD, 16));
-        showNotificationsButton.setBackground(COLOR_3);
-        showNotificationsButton.setForeground(Color.WHITE);
+        showNotificationsButton.setBackground(BUTTON_COLOR);
+        showNotificationsButton.setForeground(BUTTON_TEXT_COLOR);
         showNotificationsButton.setFocusPainted(false);
         showNotificationsButton.setVisible(false);
         showNotificationsButton.addActionListener(e -> {
@@ -381,6 +437,8 @@ public class MainMenu extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please enter both initial and final destinations.", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+
+        loadTaxisIntoTable();
     }
 
     private void startClock() {
@@ -400,7 +458,7 @@ public class MainMenu extends JFrame {
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
         button.setMaximumSize(new Dimension(200, 50));
         button.setBackground(color);
-        button.setForeground(Color.WHITE);
+        button.setForeground(BUTTON_TEXT_COLOR);
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
@@ -412,48 +470,15 @@ public class MainMenu extends JFrame {
             return;
         }
 
-        String[] columnNames = {"Taxi Number", "Available Start Time", "Available End Time"};
-        String[][] tableData = new String[taxis.size()][3];
-        for (int i = 0; i < taxis.size(); i++) {
-            Taxi taxi = taxis.get(i);
-            tableData[i][0] = taxi.getTaxiNumber();
-            tableData[i][1] = taxi.getStartTime();
-            tableData[i][2] = taxi.getEndTime();
-        }
-
-        JTable table = new JTable(tableData, columnNames);
-        table.setFillsViewportHeight(true);
-        table.setFont(new Font("Arial", Font.PLAIN, 14));
-        table.setRowHeight(30);
-
-        JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("Arial", Font.BOLD, 16));
-        header.setBackground(COLOR_3);
-        header.setForeground(Color.WHITE);
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(500, 300));
-
-        JOptionPane.showMessageDialog(this, scrollPane, "Taxi Schedule", JOptionPane.INFORMATION_MESSAGE);
+        loadTaxisIntoTable();
     }
 
     private void switchTheme() {
-        Color panelBackground;
-        Color labelForeground;
-        Color buttonBackground;
-        Color buttonForeground;
-
-        if (getContentPane().getBackground().equals(COLOR_1)) {
-            panelBackground = COLOR_4;
-            labelForeground = COLOR_1;
-            buttonBackground = COLOR_3;
-            buttonForeground = COLOR_1;
-        } else {
-            panelBackground = COLOR_1;
-            labelForeground = Color.WHITE;
-            buttonBackground = COLOR_3;
-            buttonForeground = Color.WHITE;
-        }
+        isLightTheme = !isLightTheme;
+        Color panelBackground = isLightTheme ? BG_COLOR_LIGHT : BG_COLOR_DARK;
+        Color labelForeground = TEXT_COLOR;
+        Color buttonBackground = BUTTON_COLOR;
+        Color buttonForeground = BUTTON_TEXT_COLOR;
 
         getContentPane().setBackground(panelBackground);
         for (Component component : getContentPane().getComponents()) {
@@ -474,8 +499,8 @@ public class MainMenu extends JFrame {
             component.setBackground(buttonBackground);
             component.setForeground(buttonForeground);
         } else if (component instanceof JTextField) {
-            component.setBackground(COLOR_5);
-            component.setForeground(Color.WHITE);
+            component.setBackground(PANEL_COLOR);
+            component.setForeground(labelForeground);
         }
     }
 
@@ -500,6 +525,13 @@ public class MainMenu extends JFrame {
             JOptionPane.showMessageDialog(this, "Taxi data saved successfully.", "Save Data", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Failed to save taxi data.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadTaxisIntoTable() {
+        taxiTableModel.setRowCount(0);
+        for (Taxi taxi : taxis) {
+            taxiTableModel.addRow(new Object[]{taxi.getTaxiNumber(), taxi.getStartTime(), taxi.getEndTime()});
         }
     }
 
